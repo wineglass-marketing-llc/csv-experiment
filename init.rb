@@ -5,42 +5,56 @@
 # 20190221
 
 require 'csv'
-require 'tempfile'
-# begin
-header = nil
-Csv_data = []
+require 'tempfile' # create a auto deleting file
 
-run_small_file = false
-# large_csv_name = "real_data-100k.csv"
-large_csv_name = "real_data-1000k.csv"
-file_name = run_small_file ? "real_customer_data.csv" : large_csv_name
+
+# enter your csv file name here
+file_name = "real_data-1000k.csv"
 csv_file = File.join(Dir.pwd, file_name)
 puts "CSV FileFile Opened: #{csv_file}"
 
 
-# read 50 lines then stop delete those 50 lines
-#   continue
-def fake_api_call(json)
-  # puts json.join("  ")
-  json.join("  ")
+# Simulate vendor api call by saving a temporary file
+# to disk with the 'buffer' to disk, when f.close is call
+# the file is deleted
+def fake_api_call(buffer)
+  f = Tempfile.new('tempfile')
+  f.puts buffer.join("  ")
+  # puts f.path
+  f.close
 end
 
-line_number = 0
-temp_line = []
-interval = 1000
-CSV.foreach(csv_file) do |line|
-  line_number += 1
-  next if line_number == 1
-  if line_number % 10000 == 0
-    puts line_number
+# In a memory efficient way process a large
+# Csv file, and call a fake_api_call() every 1000 rows
+def read_large_csv_file(file_path)
+  line_number = 0
+  buffer_array = []
+  interval = 1000
+  # CSV.foreach reads on line at a time, and
+  # only keeps that line in memory until end of block
+  CSV.foreach(file_path) do |line|
+    line_number += 1
+    # skip the header of the csv file EX: OrderNumber, OrderDate, OrderType, BillCustomerNumber
+    next if line_number == 1
+
+    # give indication of processing progress
+    puts "Rows Processed: #{line_number}" if line_number % 10000 == 0
+
+    # Every 'interval' number of rows excite the block
+    if line_number % interval == 0
+
+      #here would be the api call
+      fake_api_call(buffer_array)
+
+      # clear the buffer so ram doesnt get out of control
+      buffer_array = []
+    end
+    # create a running buffer from the rows of the csv file
+    buffer_array << line
   end
-  if line_number % interval == 0
-    # puts "ran for 50 records: line num #{line_number}, temp size #{temp_line.length},"
-    fake_api_call(temp_line)
-    temp_line = []
-  end
-  # break if line_number == 200
-  # puts line_number.to_s + " | "
-  temp_line << line
+  puts "Final buffer_array Size: #{buffer_array.size}"
 end
-# puts temp_line
+
+
+# main
+read_large_csv_file(csv_file)
