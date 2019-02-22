@@ -3,18 +3,8 @@
 # oranbusiness@gmail.com
 # github.com/wisehackermonkey
 # 20190222
-
-
-#!/usr/bin/env ruby
-# csv pagination experiment
-# by Oran C
-# github.com/wisehackermonkey
-# 20190221
-
+#
 require 'csv'
-require 'tempfile'
-# begin
-header = nil
 Csv_data = []
 
 run_small_file = false
@@ -31,8 +21,6 @@ def fake_api_call(json)
 end
 
 # lines = File.foreach(csv_file).first(10)
-line_number = 0
-temp_line = []
-
+# or
 csv_arr = CSV.read(csv_file)
 csv_arr.each {|row| puts row.join(" ")}
