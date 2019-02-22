@@ -22,5 +22,6 @@ end
 
 # lines = File.foreach(csv_file).first(10)
 # or
+#
 csv_arr = CSV.read(csv_file)
 csv_arr.each {|row| puts row.join(" ")}
